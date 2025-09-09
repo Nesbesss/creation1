@@ -3,63 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=240, height=282, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R1 Flappy Bird</title>
+    <title>R1 Chat</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div id="app">
         <header>
-            <h1 id="page-title">R1 Flappy Bird</h1>
-            <div id="score-display">0</div>
+            <h1 id="page-title">R1 Chat</h1>
+            <button id="menu-btn">☰</button>
         </header>
         
+        <!-- Navigation Menu -->
+        <div id="menu" class="hidden">
+            <ul>
+                <li data-page="chats" class="active">Chats</li>
+                <li data-page="friends">Friends</li>
+                <li data-page="profile">Profile</li>
+            </ul>
+        </div>
+        
         <main id="content">
-            <div id="game-container">
-                <!-- Game canvas -->
-                <div id="game-area">
-                    <div id="bird"></div>
-                    <div class="pipe-container">
-                        <div class="pipe top"></div>
-                        <div class="pipe bottom"></div>
+            <!-- Onboarding Screen -->
+            <div id="onboarding" class="page">
+                <div class="onboarding-container">
+                    <h2>Welcome to R1 Chat</h2>
+                    <p>Let's set up your profile</p>
+                    <div class="form-group">
+                        <label for="username-input">Username</label>
+                        <input type="text" id="username-input" placeholder="Enter username">
                     </div>
-                    <div class="ground"></div>
+                    <div class="form-group">
+                        <label for="status-input">Status</label>
+                        <input type="text" id="status-input" placeholder="What's on your mind?">
+                    </div>
+                    <button id="save-profile-btn">Save Profile</button>
                 </div>
-                
-                <!-- Game UI -->
-                <div id="game-ui">
-                    <div id="start-screen" class="game-overlay">
-                        <h2>R1 Flappy Bird</h2>
-                        <p>Press PTT button or tap to start</p>
-                        <p>Scroll up to flap!</p>
-                        <button id="start-btn">Start Game</button>
+            </div>
+            
+            <!-- Chats Page -->
+            <div id="chats-page" class="page hidden">
+                <div class="chat-list" id="chat-list">
+                    <!-- Chat items will be added here dynamically -->
+                    <div class="empty-state">
+                        <p>No conversations yet</p>
+                        <p>Add friends to start chatting</p>
                     </div>
-                    
-                    <div id="game-over" class="game-overlay hidden">
-                        <h2>Game Over</h2>
-                        <div class="score-board">
-                            <div class="score-item">
-                                <span>Score:</span>
-                                <span id="final-score">0</span>
-                            </div>
-                            <div class="score-item">
-                                <span>Best:</span>
-                                <span id="best-score">0</span>
-                            </div>
+                </div>
+            </div>
+            
+            <!-- Friends Page -->
+            <div id="friends-page" class="page hidden">
+                <div class="friends-header">
+                    <h2>Friends</h2>
+                    <span id="friend-count">0</span>
+                </div>
+                <div class="friends-list" id="friends-list">
+                    <!-- Friends will be added here dynamically -->
+                </div>
+                <div class="add-friend">
+                    <input type="text" id="friend-name" placeholder="Enter friend's username">
+                    <button id="add-friend-btn">Add</button>
+                </div>
+            </div>
+            
+            <!-- Profile Page -->
+            <div id="profile-page" class="page hidden">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="avatar">
+                            <span id="profile-initial"></span>
                         </div>
-                        <button id="restart-btn">Play Again</button>
+                        <div class="profile-info">
+                            <h3 id="profile-username">Username</h3>
+                            <p id="profile-status">Status</p>
+                        </div>
                     </div>
+                    <div class="profile-actions">
+                        <button id="edit-profile-btn">Edit Profile</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Detail Page -->
+            <div id="chat-detail" class="page hidden">
+                <div class="chat-header">
+                    <button id="back-btn">←</button>
+                    <div class="chat-user">
+                        <h3 id="chat-username">Friend</h3>
+                        <p id="chat-status" class="status">Online</p>
+                    </div>
+                </div>
+                <div class="messages" id="messages">
+                    <!-- Messages will be added here dynamically -->
+                </div>
+                <div class="message-input">
+                    <input type="text" id="message-input" placeholder="Type a message...">
+                    <button id="send-btn">Send</button>
                 </div>
             </div>
         </main>
         
         <footer>
-            <div id="controls">
-                <button id="jump-btn">Flap</button>
-                <div id="status-message">Ready</div>
-            </div>
+            <div id="status-message">Ready</div>
         </footer>
     </div>
     
-    <script src="js/flappybird.js"></script>
+    <script src="js/chat.js"></script>
 </body>
 </html>
