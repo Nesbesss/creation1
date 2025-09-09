@@ -38,12 +38,44 @@ document.addEventListener('DOMContentLoaded', () => {
     let chats = {};
     let activeChat = null;
     
+    // Initialize local storage for testing
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem('r1_chat_initialized')) {
+        console.log('Initializing local storage for testing');
+        localStorage.setItem('r1_chat_initialized', 'true');
+        // Add sample friends
+        const sampleFriends = [
+            { id: 'f1234', username: 'Alice', status: 'online', lastSeen: new Date().toISOString() },
+            { id: 'f5678', username: 'Bob', status: 'offline', lastSeen: new Date().toISOString() }
+        ];
+        localStorage.setItem('r1_chat_friends', JSON.stringify(sampleFriends));
+        
+        // Add sample chats
+        const sampleChats = {
+            'f1234': [
+                { id: 'm1', sender: 'f1234', content: 'Hi there!', timestamp: new Date().toISOString() },
+                { id: 'm2', sender: 'me', content: 'Hello! How are you?', timestamp: new Date().toISOString() }
+            ]
+        };
+        localStorage.setItem('r1_chat_messages', JSON.stringify(sampleChats));
+    }
+    
     // Initialize App
     initApp();
     
     // Initialize the app
     function initApp() {
-        // Check if user exists
+        // Log that we're starting initialization
+        console.log('Initializing app...');
+        
+        // Debug all UI elements to ensure they're found
+        console.log('Menu button:', menuBtn);
+        console.log('Menu:', menu);
+        console.log('Add friend button:', addFriendBtn);
+        
+        // Start directly with onboarding for testing
+        showPage('onboarding');
+        
+        // Check if user exists (but don't wait for it)
         loadUserProfile().then(user => {
             if (user) {
                 currentUser = user;
@@ -51,48 +83,105 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateProfileUI();
                 loadFriends();
                 loadChats();
-            } else {
-                showPage('onboarding');
+            }
+            // If no user, we're already on onboarding screen
+        }).catch(err => {
+            console.error('Error loading profile:', err);
+            // Stay on onboarding screen in case of error
+        });
+        
+        // Set up menu toggle with robust error handling
+        if (menuBtn) {
+            // Remove any existing listeners first
+            const newMenuBtn = menuBtn.cloneNode(true);
+            menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+            
+            // Add fresh event listener
+            newMenuBtn.addEventListener('click', (e) => {
+                console.log('Menu button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+                return false;
+            });
+            
+            // Update reference
+            menuBtn = newMenuBtn;
+        } else {
+            console.error('Menu button not found!');
+        }
+        
+        // Set up navigation with robust error handling
+        const navItems = document.querySelectorAll('#menu li.nav-item');
+        navItems.forEach(item => {
+            if (item) {
+                // Remove any existing listeners first
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+                
+                // Add fresh event listener
+                newItem.addEventListener('click', (e) => {
+                    const page = newItem.getAttribute('data-page');
+                    console.log('Menu item clicked:', page);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigateTo(page);
+                    toggleMenu();
+                    return false;
+                });
             }
         });
         
-        // Set up menu toggle
-        menuBtn.addEventListener('click', toggleMenu);
-        
-        // Set up navigation
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navigateTo(item.getAttribute('data-page'));
-                toggleMenu();
-            });
-        });
-        
         // Set up onboarding form
-        saveProfileBtn.addEventListener('click', saveProfile);
+        if (saveProfileBtn) {
+            saveProfileBtn.addEventListener('click', saveProfile);
+        }
         
         // Set up friends
-        addFriendBtn.addEventListener('click', addFriend);
-        friendNameInput.addEventListener('keypress', event => {
-            if (event.key === 'Enter') addFriend();
-        });
+        if (addFriendBtn) {
+            addFriendBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                addFriend();
+            });
+        }
+        
+        if (friendNameInput) {
+            friendNameInput.addEventListener('keypress', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addFriend();
+                }
+            });
+        }
         
         // Set up chat
-        backBtn.addEventListener('click', () => {
-            navigateTo('chats');
-        });
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                navigateTo('chats');
+            });
+        }
         
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', event => {
-            if (event.key === 'Enter') sendMessage();
-        });
+        if (sendBtn && messageInput) {
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
         
         // Set up profile
-        editProfileBtn.addEventListener('click', () => {
-            // Populate fields with current values
-            usernameInput.value = currentUser.username;
-            statusInput.value = currentUser.status;
-            showPage('onboarding');
-        });
+        if (editProfileBtn) {
+            editProfileBtn.addEventListener('click', () => {
+                // Populate fields with current values
+                if (currentUser) {
+                    usernameInput.value = currentUser.username;
+                    statusInput.value = currentUser.status;
+                    showPage('onboarding');
+                }
+            });
+        }
         
         // Set up R1 device specific handlers
         setupHardwareEvents();
@@ -130,14 +219,52 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Toggle menu
     function toggleMenu() {
-        menu.classList.toggle('active');
+        console.log('Toggling menu');
+        
+        // Find the menu element
+        const menu = document.getElementById('menu');
+        
+        if (!menu) {
+            console.error('Menu element not found!');
+            return;
+        }
+        
+        // Check if menu is active (visible)
+        const isActive = menu.classList.contains('active');
+        
+        // Toggle the active class
+        if (isActive) {
+            menu.classList.remove('active');
+            console.log('Menu hidden');
+        } else {
+            menu.classList.remove('hidden'); // Remove hidden class if present
+            
+            // Force a reflow before adding the active class for transition
+            void menu.offsetWidth;
+            
+            menu.classList.add('active');
+            console.log('Menu shown');
+        }
     }
     
     // Navigate to a page
     function navigateTo(page) {
+        console.log('Navigating to:', page);
+        
+        if (!page) {
+            console.error('Invalid page parameter in navigateTo');
+            return;
+        }
+        
         // Update active menu item
+        const menuItems = document.querySelectorAll('#menu li.nav-item');
         menuItems.forEach(item => {
-            item.classList.toggle('active', item.getAttribute('data-page') === page);
+            const itemPage = item.getAttribute('data-page');
+            if (itemPage === page) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
         });
         
         // Handle special case for chat detail
@@ -151,33 +278,67 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Show a specific page
     function showPage(pageId) {
+        console.log('Showing page:', pageId);
+        
+        // Get all pages and clean their classes first
         const pages = document.querySelectorAll('.page');
         pages.forEach(page => {
-            page.classList.toggle('active', page.id === pageId || page.id === pageId + '-page');
+            // Remove active class from all pages
+            page.classList.remove('active');
+            page.classList.remove('hidden');
         });
+        
+        // Then try to find the target page - check both with and without "-page" suffix
+        const targetPageId = pageId.endsWith('-page') ? pageId : pageId;
+        const targetPage = document.getElementById(targetPageId) || document.getElementById(targetPageId + '-page');
+        
+        if (targetPage) {
+            // Force a reflow before adding the active class
+            void targetPage.offsetWidth;
+            targetPage.classList.add('active');
+            console.log('Activated page:', targetPage.id);
+        } else {
+            console.error('Target page not found:', pageId, 'or', pageId + '-page');
+        }
         
         // Update header title
         const pageTitle = document.getElementById('page-title');
+        if (!pageTitle) {
+            console.error('Page title element not found');
+            return;
+        }
         
-        switch(pageId) {
+        switch(targetPageId) {
             case 'onboarding':
                 pageTitle.textContent = 'Setup Profile';
                 break;
             case 'chats':
+            case 'chats-page':
                 pageTitle.textContent = 'R1 Chat';
                 break;
             case 'friends':
+            case 'friends-page':
                 pageTitle.textContent = 'Friends';
                 break;
             case 'profile':
+            case 'profile-page':
                 pageTitle.textContent = 'My Profile';
                 break;
             case 'chat-detail':
-                pageTitle.textContent = activeChat || 'Chat';
+                pageTitle.textContent = activeChat ? getFriendName(activeChat) : 'Chat';
                 break;
             default:
                 pageTitle.textContent = 'R1 Chat';
         }
+        
+        // Update status with page name
+        updateStatus('Viewing ' + pageTitle.textContent);
+    }
+    
+    // Helper function to get friend name from ID
+    function getFriendName(friendId) {
+        const friend = friends.find(f => f.id === friendId);
+        return friend ? friend.username : 'Chat';
     }
     
     // Load user profile from storage
@@ -369,11 +530,25 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add a friend
     function addFriend() {
+        console.log('Adding friend...');
+        
+        if (!friendNameInput) {
+            console.error('Friend name input not found');
+            updateStatus('Error adding friend');
+            return;
+        }
+        
         const friendName = friendNameInput.value.trim();
+        console.log('Friend name:', friendName);
         
         if (!friendName) {
             updateStatus('Friend name is required');
             return;
+        }
+        
+        // Initialize friends array if not exists
+        if (!Array.isArray(friends)) {
+            friends = [];
         }
         
         // Check if friend already exists
@@ -390,14 +565,27 @@ document.addEventListener('DOMContentLoaded', () => {
             lastSeen: new Date().toISOString()
         };
         
+        console.log('New friend object:', newFriend);
+        
+        // Add to friends array
         friends.push(newFriend);
+        
+        // Save and update UI
         saveFriends();
         updateFriendsUI();
+        
+        // Create empty chat for this friend
+        if (!chats[newFriend.id]) {
+            chats[newFriend.id] = [];
+            saveChats();
+            updateChatListUI();
+        }
         
         // Clear input
         friendNameInput.value = '';
         
-        updateStatus(`Friend ${friendName} added`);
+        // Show success message
+        updateStatus(`Friend ${friendName} added successfully!`);
     }
     
     // Remove a friend
