@@ -135,13 +135,15 @@ main {
     padding: 10px;
     overflow-y: auto;
     display: none;
-    transition: opacity 0.3s ease;
     opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
 }
 
 .page.active {
-    display: block;
-    opacity: 1;
+    display: block !important;
+    opacity: 1 !important;
+    z-index: 5;
 }
 
 /* Override hidden class to ensure proper behavior */
@@ -151,6 +153,18 @@ main {
 }
 
 /* Onboarding Styles */
+#onboarding {
+    display: block;
+    opacity: 1;
+    z-index: 10;
+    background-color: var(--background-color);
+}
+
+#onboarding.active {
+    display: block !important;
+    opacity: 1 !important;
+}
+
 .onboarding-container {
     display: flex;
     flex-direction: column;
@@ -158,43 +172,82 @@ main {
     align-items: center;
     height: 100%;
     text-align: center;
+    padding: 20px 15px;
 }
 
 .onboarding-container h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
+    font-size: 24px;
+    margin-bottom: 15px;
     color: var(--accent-color);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.onboarding-container p {
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+#profileForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .form-group {
     width: 100%;
-    margin: 10px 0;
+    margin: 12px 0;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-size: 12px;
+    margin-bottom: 8px;
+    font-size: 14px;
     text-align: left;
+    color: var(--accent-color);
+    font-weight: bold;
 }
 
 .form-group input {
     width: 100%;
-    padding: 8px;
-    border: 1px solid var(--dark-accent);
+    padding: 12px;
+    border: 2px solid var(--border-color);
     background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
-    border-radius: 4px;
+    color: var(--accent-color);
+    border-radius: 6px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--accent-color);
+    outline: none;
+    box-shadow: 0 0 5px var(--accent-color);
 }
 
 #save-profile-btn {
-    margin-top: 15px;
-    padding: 8px 20px;
-    background-color: var(--secondary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
+    margin-top: 20px;
+    padding: 12px 25px;
+    background-color: var(--accent-color);
+    color: var(--dark-accent);
+    border: 2px solid var(--dark-accent);
+    border-radius: 8px;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+#save-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+#save-profile-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Chats Page Styles */
