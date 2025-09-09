@@ -10,15 +10,29 @@
     <div id="app">
         <header>
             <h1 id="page-title">R1 Chat</h1>
-            <button id="menu-btn">☰</button>
+            <button id="menu-btn" onclick="toggleMenu()">☰</button>
         </header>
+        
+        <script>
+            function toggleMenu() {
+                console.log('Toggle menu clicked');
+                const menu = document.getElementById('menu');
+                if (menu) {
+                    if (menu.classList.contains('active')) {
+                        menu.classList.remove('active');
+                    } else {
+                        menu.classList.add('active');
+                    }
+                }
+            }
+        </script>
         
         <!-- Navigation Menu -->
         <div id="menu">
             <ul>
-                <li data-page="chats-page" class="nav-item active">Chats</li>
-                <li data-page="friends-page" class="nav-item">Friends</li>
-                <li data-page="profile-page" class="nav-item">Profile</li>
+                <li data-page="chats-page" class="nav-item active" onclick="changePage('chats-page')">Chats</li>
+                <li data-page="friends-page" class="nav-item" onclick="changePage('friends-page')">Friends</li>
+                <li data-page="profile-page" class="nav-item" onclick="changePage('profile-page')">Profile</li>
             </ul>
         </div>
         
@@ -41,6 +55,64 @@
                     </form>
                     
                     <script>
+                        // Global navigation function
+                        function changePage(pageId) {
+                            console.log('Changing to page:', pageId);
+                            
+                            // Hide all pages
+                            const pages = document.querySelectorAll('.page');
+                            pages.forEach(page => {
+                                page.classList.remove('active');
+                                page.style.display = 'none';
+                                page.style.opacity = '0';
+                            });
+                            
+                            // Show the selected page
+                            const targetPage = document.getElementById(pageId);
+                            if (targetPage) {
+                                targetPage.classList.add('active');
+                                targetPage.style.display = 'block';
+                                targetPage.style.opacity = '1';
+                                console.log('Activated page:', pageId);
+                            } else {
+                                console.error('Page not found:', pageId);
+                            }
+                            
+                            // Update menu selection
+                            const menuItems = document.querySelectorAll('.nav-item');
+                            menuItems.forEach(item => {
+                                if (item.getAttribute('data-page') === pageId) {
+                                    item.classList.add('active');
+                                } else {
+                                    item.classList.remove('active');
+                                }
+                            });
+                            
+                            // Update page title
+                            const pageTitle = document.getElementById('page-title');
+                            if (pageTitle) {
+                                switch (pageId) {
+                                    case 'chats-page':
+                                        pageTitle.textContent = 'R1 Chat';
+                                        break;
+                                    case 'friends-page':
+                                        pageTitle.textContent = 'Friends';
+                                        break;
+                                    case 'profile-page':
+                                        pageTitle.textContent = 'My Profile';
+                                        break;
+                                    default:
+                                        pageTitle.textContent = 'R1 Chat';
+                                }
+                            }
+                            
+                            // Toggle menu closed
+                            const menu = document.getElementById('menu');
+                            if (menu && menu.classList.contains('active')) {
+                                menu.classList.remove('active');
+                            }
+                        }
+                        
                         function saveProfileHandler() {
                             console.log('Save profile clicked via inline handler');
                             const username = document.getElementById('username-input').value.trim();
@@ -67,19 +139,17 @@
                             // Show success message
                             alert('Profile saved successfully!');
                             
-                            // Manually navigate to chats page
-                            const pages = document.querySelectorAll('.page');
-                            pages.forEach(p => p.classList.remove('active'));
+                            // Update profile UI
+                            const profileInitial = document.getElementById('profile-initial');
+                            const profileUsername = document.getElementById('profile-username');
+                            const profileStatus = document.getElementById('profile-status');
                             
-                            const chatsPage = document.getElementById('chats-page');
-                            if (chatsPage) {
-                                chatsPage.classList.add('active');
-                                console.log('Navigated to chats page');
-                            }
+                            if (profileInitial) profileInitial.textContent = username.charAt(0).toUpperCase();
+                            if (profileUsername) profileUsername.textContent = username;
+                            if (profileStatus) profileStatus.textContent = status;
                             
-                            // Update page title
-                            const pageTitle = document.getElementById('page-title');
-                            if (pageTitle) pageTitle.textContent = 'R1 Chat';
+                            // Navigate to chats page
+                            changePage('chats-page');
                         }
                     </script>
                 </div>
@@ -107,8 +177,188 @@
                 </div>
                 <div class="add-friend">
                     <input type="text" id="friend-name" placeholder="Enter friend's username">
-                    <button id="add-friend-btn">Add</button>
+                    <button id="add-friend-btn" onclick="addFriend()">Add</button>
                 </div>
+                
+                <script>
+                    function addFriend() {
+                        console.log('Add friend clicked');
+                        const friendNameInput = document.getElementById('friend-name');
+                        if (!friendNameInput) {
+                            console.error('Friend name input not found');
+                            return;
+                        }
+                        
+                        const friendName = friendNameInput.value.trim();
+                        if (!friendName) {
+                            alert('Friend name is required');
+                            return;
+                        }
+                        
+                        // Get existing friends
+                        let friends = [];
+                        const storedFriends = localStorage.getItem('r1_chat_friends');
+                        if (storedFriends) {
+                            friends = JSON.parse(storedFriends);
+                        }
+                        
+                        // Check if friend already exists
+                        if (friends.some(f => f.username.toLowerCase() === friendName.toLowerCase())) {
+                            alert('Friend already exists');
+                            return;
+                        }
+                        
+                        // Add new friend
+                        const newFriend = {
+                            id: 'f' + Date.now(),
+                            username: friendName,
+                            status: Math.random() > 0.5 ? 'online' : 'offline',
+                            lastSeen: new Date().toISOString()
+                        };
+                        
+                        friends.push(newFriend);
+                        
+                        // Save to localStorage
+                        localStorage.setItem('r1_chat_friends', JSON.stringify(friends));
+                        
+                        // Clear input
+                        friendNameInput.value = '';
+                        
+                        // Update friends list UI
+                        updateFriendsList();
+                        
+                        // Create empty chat for this friend
+                        let chats = {};
+                        const storedChats = localStorage.getItem('r1_chat_messages');
+                        if (storedChats) {
+                            chats = JSON.parse(storedChats);
+                        }
+                        
+                        if (!chats[newFriend.id]) {
+                            chats[newFriend.id] = [];
+                            localStorage.setItem('r1_chat_messages', JSON.stringify(chats));
+                        }
+                        
+                        alert('Friend added successfully!');
+                    }
+                    
+                    function updateFriendsList() {
+                        const friendsList = document.getElementById('friends-list');
+                        const friendCount = document.getElementById('friend-count');
+                        
+                        if (!friendsList || !friendCount) return;
+                        
+                        // Get friends from localStorage
+                        let friends = [];
+                        const storedFriends = localStorage.getItem('r1_chat_friends');
+                        if (storedFriends) {
+                            friends = JSON.parse(storedFriends);
+                        }
+                        
+                        // Update count
+                        friendCount.textContent = friends.length;
+                        
+                        // Clear list
+                        friendsList.innerHTML = '';
+                        
+                        if (friends.length === 0) {
+                            const emptyState = document.createElement('div');
+                            emptyState.className = 'empty-state';
+                            emptyState.innerHTML = '<p>No friends yet</p><p>Add friends to start chatting</p>';
+                            friendsList.appendChild(emptyState);
+                            return;
+                        }
+                        
+                        // Add each friend
+                        friends.forEach(friend => {
+                            const friendItem = document.createElement('div');
+                            friendItem.className = 'friend-item';
+                            friendItem.dataset.id = friend.id;
+                            
+                            const friendInfo = document.createElement('div');
+                            friendInfo.className = 'friend-info';
+                            
+                            const avatar = document.createElement('div');
+                            avatar.className = 'friend-avatar';
+                            avatar.textContent = friend.username.charAt(0).toUpperCase();
+                            
+                            const status = document.createElement('div');
+                            status.className = `friend-status ${friend.status}`;
+                            
+                            const name = document.createElement('div');
+                            name.className = 'friend-name';
+                            name.textContent = friend.username;
+                            
+                            const actions = document.createElement('div');
+                            actions.className = 'friend-actions';
+                            
+                            const chatAction = document.createElement('div');
+                            chatAction.className = 'friend-action chat';
+                            chatAction.innerHTML = '💬';
+                            chatAction.title = 'Chat';
+                            chatAction.onclick = function() {
+                                startChat(friend);
+                            };
+                            
+                            const removeAction = document.createElement('div');
+                            removeAction.className = 'friend-action remove';
+                            removeAction.innerHTML = '×';
+                            removeAction.title = 'Remove';
+                            removeAction.onclick = function() {
+                                removeFriend(friend.id);
+                            };
+                            
+                            friendInfo.appendChild(status);
+                            friendInfo.appendChild(avatar);
+                            friendInfo.appendChild(name);
+                            
+                            actions.appendChild(chatAction);
+                            actions.appendChild(removeAction);
+                            
+                            friendItem.appendChild(friendInfo);
+                            friendItem.appendChild(actions);
+                            
+                            friendsList.appendChild(friendItem);
+                        });
+                    }
+                    
+                    // Function to remove a friend
+                    function removeFriend(friendId) {
+                        if (!confirm('Are you sure you want to remove this friend?')) return;
+                        
+                        // Get existing friends
+                        let friends = [];
+                        const storedFriends = localStorage.getItem('r1_chat_friends');
+                        if (storedFriends) {
+                            friends = JSON.parse(storedFriends);
+                        }
+                        
+                        // Remove friend
+                        friends = friends.filter(f => f.id !== friendId);
+                        
+                        // Save to localStorage
+                        localStorage.setItem('r1_chat_friends', JSON.stringify(friends));
+                        
+                        // Update friends list UI
+                        updateFriendsList();
+                        
+                        // Remove chat
+                        let chats = {};
+                        const storedChats = localStorage.getItem('r1_chat_messages');
+                        if (storedChats) {
+                            chats = JSON.parse(storedChats);
+                            if (chats[friendId]) {
+                                delete chats[friendId];
+                                localStorage.setItem('r1_chat_messages', JSON.stringify(chats));
+                            }
+                        }
+                    }
+                    
+                    // Load friends list when the page loads
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateFriendsList();
+                    });
+                </script>
             </div>
             
             <!-- Profile Page -->
@@ -143,16 +393,333 @@
                 </div>
                 <div class="message-input">
                     <input type="text" id="message-input" placeholder="Type a message...">
-                    <button id="send-btn">Send</button>
+                    <button id="send-btn" onclick="sendMessage()">Send</button>
                 </div>
             </div>
         </main>
+        
+        <script>
+            // Global variables
+            let activeChat = null;
+            
+            function startChat(friend) {
+                console.log('Starting chat with', friend);
+                activeChat = friend.id;
+                
+                // Update chat header
+                const chatUsername = document.getElementById('chat-username');
+                const chatStatus = document.getElementById('chat-status');
+                
+                if (chatUsername) chatUsername.textContent = friend.username;
+                if (chatStatus) {
+                    chatStatus.textContent = friend.status === 'online' ? 'Online' : 'Offline';
+                    chatStatus.style.color = friend.status === 'online' ? 'var(--success-color)' : '#95a5a6';
+                }
+                
+                // Load chat messages
+                updateChatMessages(friend.id);
+                
+                // Show chat detail page
+                changePage('chat-detail');
+                
+                // Focus message input
+                setTimeout(() => {
+                    const messageInput = document.getElementById('message-input');
+                    if (messageInput) messageInput.focus();
+                }, 300);
+            }
+            
+            function updateChatMessages(friendId) {
+                const messages = document.getElementById('messages');
+                if (!messages) return;
+                
+                // Clear existing messages
+                messages.innerHTML = '';
+                
+                // Get chat messages
+                let chats = {};
+                const storedChats = localStorage.getItem('r1_chat_messages');
+                if (storedChats) {
+                    chats = JSON.parse(storedChats);
+                }
+                
+                const chat = chats[friendId] || [];
+                
+                if (chat.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-chat';
+                    emptyState.textContent = 'No messages yet. Say hello!';
+                    messages.appendChild(emptyState);
+                    return;
+                }
+                
+                // Add each message
+                chat.forEach(message => {
+                    const messageEl = document.createElement('div');
+                    messageEl.className = `message ${message.sender === 'me' ? 'sent' : 'received'}`;
+                    
+                    const content = document.createElement('div');
+                    content.className = 'message-content';
+                    content.textContent = message.content;
+                    
+                    const time = document.createElement('div');
+                    time.className = 'message-time';
+                    time.textContent = formatTime(new Date(message.timestamp));
+                    
+                    messageEl.appendChild(content);
+                    messageEl.appendChild(time);
+                    
+                    messages.appendChild(messageEl);
+                });
+                
+                // Scroll to bottom
+                messages.scrollTop = messages.scrollHeight;
+            }
+            
+            function formatTime(date) {
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            }
+            
+            function sendMessage() {
+                const messageInput = document.getElementById('message-input');
+                if (!messageInput) return;
+                
+                const content = messageInput.value.trim();
+                
+                if (!content || !activeChat) {
+                    return;
+                }
+                
+                // Create message
+                const message = {
+                    id: 'm' + Date.now(),
+                    sender: 'me',
+                    content: content,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Get chats
+                let chats = {};
+                const storedChats = localStorage.getItem('r1_chat_messages');
+                if (storedChats) {
+                    chats = JSON.parse(storedChats);
+                }
+                
+                // Add message to chat
+                if (!chats[activeChat]) {
+                    chats[activeChat] = [];
+                }
+                
+                chats[activeChat].push(message);
+                
+                // Save to localStorage
+                localStorage.setItem('r1_chat_messages', JSON.stringify(chats));
+                
+                // Update UI
+                updateChatMessages(activeChat);
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Simulate reply after a delay
+                simulateReply(activeChat);
+            }
+            
+            function simulateReply(friendId) {
+                // Get friend
+                let friends = [];
+                const storedFriends = localStorage.getItem('r1_chat_friends');
+                if (storedFriends) {
+                    friends = JSON.parse(storedFriends);
+                }
+                
+                const friend = friends.find(f => f.id === friendId);
+                if (!friend || friend.status !== 'online') return;
+                
+                const responses = [
+                    'That\'s interesting!',
+                    'I agree with you.',
+                    'Tell me more about that.',
+                    'How\'s your day going?',
+                    'Nice to hear from you!',
+                    'Have you tried the new R1 features?',
+                    'What else is new?',
+                    'I\'m enjoying this chat app.',
+                    'The R1 device is amazing, isn\'t it?',
+                    'Let\'s meet up sometime soon.'
+                ];
+                
+                // Select random response
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                
+                // Random delay between 1-3 seconds
+                const delay = Math.floor(Math.random() * 2000) + 1000;
+                
+                setTimeout(() => {
+                    // Create message
+                    const message = {
+                        id: 'm' + Date.now(),
+                        sender: friendId,
+                        content: response,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Get chats
+                    let chats = {};
+                    const storedChats = localStorage.getItem('r1_chat_messages');
+                    if (storedChats) {
+                        chats = JSON.parse(storedChats);
+                    }
+                    
+                    // Add message to chat
+                    if (!chats[friendId]) {
+                        chats[friendId] = [];
+                    }
+                    
+                    chats[friendId].push(message);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('r1_chat_messages', JSON.stringify(chats));
+                    
+                    // Update UI if this chat is still active
+                    if (activeChat === friendId) {
+                        updateChatMessages(friendId);
+                    }
+                }, delay);
+            }
+            
+            // Set up back button
+            document.addEventListener('DOMContentLoaded', function() {
+                const backBtn = document.getElementById('back-btn');
+                if (backBtn) {
+                    backBtn.addEventListener('click', function() {
+                        changePage('chats-page');
+                    });
+                }
+                
+                // Load user profile
+                const storedUser = localStorage.getItem('r1_chat_user');
+                if (storedUser) {
+                    const user = JSON.parse(storedUser);
+                    
+                    // Update profile UI
+                    const profileInitial = document.getElementById('profile-initial');
+                    const profileUsername = document.getElementById('profile-username');
+                    const profileStatus = document.getElementById('profile-status');
+                    
+                    if (profileInitial) profileInitial.textContent = user.username.charAt(0).toUpperCase();
+                    if (profileUsername) profileUsername.textContent = user.username;
+                    if (profileStatus) profileStatus.textContent = user.status;
+                    
+                    // Start on chats page
+                    changePage('chats-page');
+                } else {
+                    // No user, start on onboarding
+                    changePage('onboarding');
+                }
+                
+                // Update friends list
+                updateFriendsList();
+                
+                // Update chat list
+                updateChatList();
+            });
+            
+            // Function to update the chat list
+            function updateChatList() {
+                const chatList = document.getElementById('chat-list');
+                if (!chatList) return;
+                
+                // Clear list
+                chatList.innerHTML = '';
+                
+                // Get chats from localStorage
+                let chats = {};
+                const storedChats = localStorage.getItem('r1_chat_messages');
+                if (storedChats) {
+                    chats = JSON.parse(storedChats);
+                }
+                
+                // Get friends from localStorage
+                let friends = [];
+                const storedFriends = localStorage.getItem('r1_chat_friends');
+                if (storedFriends) {
+                    friends = JSON.parse(storedFriends);
+                }
+                
+                const chatKeys = Object.keys(chats);
+                
+                if (chatKeys.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = '<p>No conversations yet</p><p>Add friends to start chatting</p>';
+                    chatList.appendChild(emptyState);
+                    return;
+                }
+                
+                // Sort chats by latest message
+                const sortedChats = chatKeys.map(key => {
+                    const chat = chats[key];
+                    const friend = friends.find(f => f.id === key) || { 
+                        username: 'Unknown', 
+                        status: 'offline',
+                        id: key
+                    };
+                    const lastMessage = chat[chat.length - 1];
+                    
+                    return {
+                        id: key,
+                        friend: friend,
+                        lastMessage: lastMessage,
+                        timestamp: lastMessage ? new Date(lastMessage.timestamp) : new Date(0)
+                    };
+                }).sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Add each chat
+                sortedChats.forEach(chat => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.dataset.id = chat.id;
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'chat-avatar';
+                    avatar.textContent = chat.friend.username.charAt(0).toUpperCase();
+                    
+                    const info = document.createElement('div');
+                    info.className = 'chat-info';
+                    
+                    const name = document.createElement('div');
+                    name.className = 'chat-name';
+                    name.textContent = chat.friend.username;
+                    
+                    const preview = document.createElement('div');
+                    preview.className = 'chat-preview';
+                    preview.textContent = chat.lastMessage ? 
+                        (chat.lastMessage.sender === 'me' ? 'You: ' : '') + chat.lastMessage.content : 
+                        'No messages';
+                    
+                    info.appendChild(name);
+                    info.appendChild(preview);
+                    
+                    chatItem.appendChild(avatar);
+                    chatItem.appendChild(info);
+                    
+                    chatItem.addEventListener('click', function() {
+                        startChat(chat.friend);
+                    });
+                    
+                    chatList.appendChild(chatItem);
+                });
+            }
+        </script>
         
         <footer>
             <div id="status-message">Ready</div>
         </footer>
     </div>
     
-    <script src="js/chat.js"></script>
+    <!-- No need for external JS file anymore, everything is in this file -->
 </body>
 </html>
