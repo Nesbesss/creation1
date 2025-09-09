@@ -1,5 +1,7 @@
 // R1 Chat Application - P2P Chat
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing R1 Chat app...');
+    
     // UI Elements
     const menuBtn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');
@@ -10,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username-input');
     const statusInput = document.getElementById('status-input');
     const saveProfileBtn = document.getElementById('save-profile-btn');
+    console.log('Save profile button found:', saveProfileBtn);
     
     // Friends Elements
     const friendsList = document.getElementById('friends-list');
@@ -134,7 +137,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Set up onboarding form
         if (saveProfileBtn) {
-            saveProfileBtn.addEventListener('click', saveProfile);
+            console.log('Setting up save profile button:', saveProfileBtn);
+            // Remove existing listeners
+            const newSaveBtn = saveProfileBtn.cloneNode(true);
+            saveProfileBtn.parentNode.replaceChild(newSaveBtn, saveProfileBtn);
+            
+            // Add fresh event listener
+            newSaveBtn.addEventListener('click', function(e) {
+                console.log('Save profile button clicked');
+                e.preventDefault();
+                saveProfile(e);
+            });
+            
+            console.log('Save profile event listener added');
+        } else {
+            console.error('Save profile button not found');
         }
         
         // Set up friends
@@ -282,20 +299,32 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Get all pages and clean their classes first
         const pages = document.querySelectorAll('.page');
+        console.log('Found', pages.length, 'pages');
+        
         pages.forEach(page => {
             // Remove active class from all pages
             page.classList.remove('active');
             page.classList.remove('hidden');
+            console.log('Removed classes from', page.id || 'unknown page');
         });
         
-        // Then try to find the target page - check both with and without "-page" suffix
+        // Then try to find the target page - check multiple ways
         const targetPageId = pageId.endsWith('-page') ? pageId : pageId;
-        const targetPage = document.getElementById(targetPageId) || document.getElementById(targetPageId + '-page');
+        let targetPage = document.getElementById(targetPageId);
+        if (!targetPage) {
+            targetPage = document.getElementById(targetPageId + '-page');
+        }
+        if (!targetPage && targetPageId === 'onboarding') {
+            targetPage = document.querySelector('#onboarding');
+        }
         
         if (targetPage) {
             // Force a reflow before adding the active class
             void targetPage.offsetWidth;
             targetPage.classList.add('active');
+            // Ensure page is visible with inline styles as a fallback
+            targetPage.style.display = 'block';
+            targetPage.style.opacity = '1';
             console.log('Activated page:', targetPage.id);
         } else {
             console.error('Target page not found:', pageId, 'or', pageId + '-page');
@@ -381,9 +410,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Save the profile from onboarding form
-    function saveProfile() {
+    function saveProfile(e) {
+        if (e) e.preventDefault();
+        
+        console.log('Saving profile...');
+        console.log('Username input:', usernameInput);
+        
+        if (!usernameInput) {
+            console.error('Username input not found');
+            updateStatus('Error: Username input not found');
+            return;
+        }
+        
         const username = usernameInput.value.trim();
-        const status = statusInput.value.trim();
+        const status = statusInput ? statusInput.value.trim() : "Available";
+        
+        console.log('Username:', username);
+        console.log('Status:', status);
         
         if (!username) {
             updateStatus('Username is required');
@@ -397,12 +440,26 @@ document.addEventListener('DOMContentLoaded', () => {
             lastActive: new Date().toISOString()
         };
         
+        console.log('New user object:', user);
+        
         currentUser = user;
-        saveUserProfile(user).then(() => {
-            updateProfileUI();
-            showPage('chats');
-            updateStatus('Profile saved');
-        });
+        
+        // Use setTimeout to ensure any UI updates happen after this
+        setTimeout(() => {
+            saveUserProfile(user).then(() => {
+                console.log('Profile saved successfully');
+                updateProfileUI();
+                showPage('chats');
+                updateStatus('Profile saved');
+                
+                // Force friends to load after profile is saved
+                loadFriends();
+                loadChats();
+            }).catch(err => {
+                console.error('Error saving profile:', err);
+                updateStatus('Error saving profile');
+            });
+        }, 100);
     }
     
     // Update profile UI elements
