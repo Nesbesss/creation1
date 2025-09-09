@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Game elements
     const bird = document.getElementById('bird');
     const gameArea = document.getElementById('game-area');
+    const gameContainer = document.getElementById('game-container');
     const scoreDisplay = document.getElementById('score-display');
     const finalScore = document.getElementById('final-score');
     const bestScore = document.getElementById('best-score');
@@ -40,6 +41,21 @@ document.addEventListener('DOMContentLoaded', () => {
         restartBtn.addEventListener('click', restartGame);
         jumpBtn.addEventListener('click', jump);
         document.addEventListener('keydown', handleKeyDown);
+        
+        // Add touch controls for the game area
+        gameArea.addEventListener('touchstart', handleTouch);
+        gameContainer.addEventListener('touchstart', handleTouch);
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            if (gameRunning) {
+                jump();
+            } else if (startScreen.classList.contains('hidden')) {
+                restartGame();
+            } else {
+                startGame();
+            }
+        }
         
         // R1 device specific event listeners
         setupHardwareEvents();
@@ -239,6 +255,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         birdVelocity = jumpStrength;
         updateStatus('Flap!');
+        
+        // Add visual feedback for jump
+        bird.style.transition = 'transform 0.1s ease';
+        bird.style.transform = `rotate(-30deg)`;
+        
+        // Reset rotation transition after jump animation
+        setTimeout(() => {
+            bird.style.transition = 'transform 0.3s ease';
+        }, 100);
     }
     
     // Handle keyboard controls
