@@ -14,11 +14,11 @@
         </header>
         
         <!-- Navigation Menu -->
-        <div id="menu" class="hidden">
+        <div id="menu">
             <ul>
-                <li data-page="chats" class="nav-item active">Chats</li>
-                <li data-page="friends" class="nav-item">Friends</li>
-                <li data-page="profile" class="nav-item">Profile</li>
+                <li data-page="chats-page" class="nav-item active">Chats</li>
+                <li data-page="friends-page" class="nav-item">Friends</li>
+                <li data-page="profile-page" class="nav-item">Profile</li>
             </ul>
         </div>
         
@@ -28,15 +28,60 @@
                 <div class="onboarding-container">
                     <h2>Welcome to R1 Chat</h2>
                     <p>Let's set up your profile</p>
-                    <div class="form-group">
-                        <label for="username-input">Username</label>
-                        <input type="text" id="username-input" placeholder="Enter username">
-                    </div>
-                    <div class="form-group">
-                        <label for="status-input">Status</label>
-                        <input type="text" id="status-input" placeholder="What's on your mind?">
-                    </div>
-                    <button id="save-profile-btn">Save Profile</button>
+                    <form id="profileForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label for="username-input">Username</label>
+                            <input type="text" id="username-input" placeholder="Enter username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="status-input">Status</label>
+                            <input type="text" id="status-input" placeholder="What's on your mind?">
+                        </div>
+                        <button type="button" id="save-profile-btn" onclick="saveProfileHandler()">SAVE PROFILE</button>
+                    </form>
+                    
+                    <script>
+                        function saveProfileHandler() {
+                            console.log('Save profile clicked via inline handler');
+                            const username = document.getElementById('username-input').value.trim();
+                            if (!username) {
+                                alert('Username is required');
+                                return;
+                            }
+                            const status = document.getElementById('status-input').value.trim() || 'Available';
+                            
+                            // Create user object
+                            const user = {
+                                username: username,
+                                status: status,
+                                created: new Date().toISOString(),
+                                lastActive: new Date().toISOString()
+                            };
+                            
+                            console.log('Saving user:', user);
+                            
+                            // Save to localStorage
+                            localStorage.setItem('r1_chat_user', JSON.stringify(user));
+                            console.log('User saved to localStorage');
+                            
+                            // Show success message
+                            alert('Profile saved successfully!');
+                            
+                            // Manually navigate to chats page
+                            const pages = document.querySelectorAll('.page');
+                            pages.forEach(p => p.classList.remove('active'));
+                            
+                            const chatsPage = document.getElementById('chats-page');
+                            if (chatsPage) {
+                                chatsPage.classList.add('active');
+                                console.log('Navigated to chats page');
+                            }
+                            
+                            // Update page title
+                            const pageTitle = document.getElementById('page-title');
+                            if (pageTitle) pageTitle.textContent = 'R1 Chat';
+                        }
+                    </script>
                 </div>
             </div>
             
