@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=240, height=282, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>R1 Flappy Bird</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1 id="page-title">R1 Flappy Bird</h1>
+            <div id="score-display">0</div>
+        </header>
+        
+        <main id="content">
+            <div id="game-container">
+                <!-- Game canvas -->
+                <div id="game-area">
+                    <div id="bird"></div>
+                    <div class="pipe-container">
+                        <div class="pipe top"></div>
+                        <div class="pipe bottom"></div>
+                    </div>
+                    <div class="ground"></div>
+                </div>
+                
+                <!-- Game UI -->
+                <div id="game-ui">
+                    <div id="start-screen" class="game-overlay">
+                        <h2>R1 Flappy Bird</h2>
+                        <p>Press PTT button or tap to start</p>
+                        <p>Scroll up to flap!</p>
+                        <button id="start-btn">Start Game</button>
+                    </div>
+                    
+                    <div id="game-over" class="game-overlay hidden">
+                        <h2>Game Over</h2>
+                        <div class="score-board">
+                            <div class="score-item">
+                                <span>Score:</span>
+                                <span id="final-score">0</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Best:</span>
+                                <span id="best-score">0</span>
+                            </div>
+                        </div>
+                        <button id="restart-btn">Play Again</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div id="controls">
+                <button id="jump-btn">Flap</button>
+                <div id="status-message">Ready</div>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="js/flappybird.js"></script>
+</body>
+</html>
